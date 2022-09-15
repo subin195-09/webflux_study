@@ -6,6 +6,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -57,5 +58,13 @@ public class CustomerController {
         return sink.asFlux().map(c -> ServerSentEvent.builder(c).build());
     }
 
-    
+    // 새로운 데이터 생성
+    // curl -X POST http://localhost:8080/customer
+    // /customer/sse 에서 데이터가 실시간으로 추가되는 것을 볼 수 있다.
+    @PostMapping("/customer")
+    public Mono<Customer> save() {
+        return customerRepository.save(new Customer("soobin", "kim")).doOnNext(c -> {
+            sink.tryEmitNext(c);
+        });
+    }
 }
